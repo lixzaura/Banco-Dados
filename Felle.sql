@@ -45,10 +45,6 @@ INSERT INTO tb_filmes ( titulo, genero, classificacao, diretor) -- tirou o id pq
                             '18',
                             'FELIX DO BEM');
                             
-                            
-    
-    
-    
     
     
 CREATE TABLE tb_clientes(
@@ -60,3 +56,76 @@ CREATE TABLE tb_clientes(
 INSERT INTO tb_clientes (nome_cliente) VALUES ('HP');
 INSERT INTO tb_clientes (cliente_id, nome_cliente) VALUES (67, 'HP');
 
+
+CREATE TABLE TB_SALAS (
+    SALA_ID   VARCHAR(3)  NOT NULL,
+    NOME_SALA  VARCHAR(20) NOT NULL,
+    TIPO_SALA  VARCHAR(5)  NOT NULL,
+    CAPACIDADE INTEGER     NOT NULL,
+    CONSTRAINT TB_SALAS_PK PRIMARY KEY (SALA_ID),
+    CONSTRAINT TB_SALAS_CAPACIDADE_CK 
+           CHECK (CAPACIDADE > 0),
+    CONSTRAINT TB_SALAS_NOME_CK
+            CHECK (LENGTH(nome_sala) > 5)
+);
+
+-- FUNÇÃO ESCALARES
+
+SELECT LENGTH('EDER') FROM DUAL; -- retorna o tamanho do texto EDER
+
+CREATE TABLE TB_SESSOES(
+sessoes_id            INTEGER GENERATED ALWAYS AS IDENTITY,
+filme_id              INTEGER NOT NULL,
+sala_id               VARCHAR(3) NOT NULL,
+horario               TIMESTAMP NOT NULL,
+data_cadastro         DATE DEFAULT current_date,
+data_exibicao_inicio  DATE NOT NULL,
+data_exibicao_termino DATE NOT NULL,
+CONSTRAINT TB_SESSOES_PK PRIMARY KEY (sessoes_id),
+CHECK (data_exibicao_termino > data_exibicao_inicio),
+CHECK (data_exibicao_inicio > data_cadastro),
+UNIQUE (sala_id, horario, data_exibicao_inicio, data_exibicao_termino)
+);
+
+ALTER TABLE tb_sessoes
+    ADD CONSTRAINT tb_sessoes_salas_FK -- chave estrangeira
+        FOREIGN KEY (sala_id)
+        REFERENCES tb_salas (sala_id);
+        
+CREATE TABLE tb_assentos(
+sala_id VARCHAR(3) NOT NULL,
+assento_id INTEGER GENERATED ALWAYS AS IDENTITY,
+fileira VARCHAR(1) NOT NULL,
+poltrona INTEGER NOT NULL,
+
+CONSTRAINT TB_ASSENTOS_PK PRIMARY KEY (assento_id),
+CONSTRAINT TB_ASSENTOS_SALA_FK
+        FOREIGN KEY (sala_id)
+        REFERENCES tb_salas (sala_id)
+);
+
+CREATE TABLE tb_ingressos (
+ingresso_id INTEGER GENERATED ALWAYS AS IDENTITY,
+cliente_id INTEGER,
+sessoes_id INTEGER NOT NULL,
+assento_id INTEGER NOT NULL,
+data_exibicao DATE NOT NULL,
+origem_compra VARCHAR(10),
+valor_pago NUMBER(7,2),
+forma_pagamento VARCHAR(10),
+tipo_ingresso VARCHAR(20),
+
+CONSTRAINT TB_ASSENTOS_PK PRIMARY KEY (assento_id),
+
+CONSTRAINT TB_INGRESSOS_TB_ASSENTOS_FK 
+FOREIGN KEY (assento_id),
+REFERENCES tb_assentos (assento_id),
+
+CONSTRAINT TB_INGRESSOS_TB_SESSOES_FK
+FOREIGN KEY (sessoes_id),
+REFERENCES tb_sessoes (sessoes_id),
+
+CONSTRAINT TB_INGRESSOS_TB_CLIENTES_FK
+FOREIGN KEY (cliente_id),
+REFERENCES tb_clientes (cliente_id)
+);
